@@ -1,0 +1,5 @@
+model_name: "your_model:latest"
+bot_token: "your_bot_token"
+system_prompt: "Present yourself as an artificial intelligence that answers questions."
+context_size: 2048
+mirostat: 2
