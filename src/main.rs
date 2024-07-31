@@ -43,10 +43,11 @@ impl EventHandler for DiscordBot {
         log::info!("Embeds: {:?}", msg.embeds);
         log::info!("Content: {:?}", msg.content);
 
+        let mut model = self.model.lock().await;
+
         // If direct message
         if msg.guild_id.is_none() {
-            let mut model = self.model.lock().await;
-            let reply = model.send_message(&user, &msg.content).await;
+            let reply = model.send_message(user, msg.content).await;
             if let Some(reply) = reply {
                 if let Err(why) = msg.channel_id.say(&ctx.http, &reply).await {
                     log::error!("{why:?}");
@@ -55,11 +56,11 @@ impl EventHandler for DiscordBot {
                 log::info!("{reply}");
             }
         }
-
         // If bot mentioned
-        if msg.mentions.iter().any(|user| user.id == bot_id) {
-            let mut model = self.model.lock().await;
-            let reply = model.send_message(&user, &msg.content).await;
+        else if msg.mentions.iter().any(|user| user.id == bot_id) {
+            // use channel ID instead of user name
+            let user = msg.channel_id.name(&ctx.http).await.unwrap();
+            let reply = model.send_message(user, msg.content).await;
             if let Some(reply) = reply {
                 if let Err(why) = msg.channel_id.say(&ctx.http, &reply).await {
                     log::error!("{why:?}");
